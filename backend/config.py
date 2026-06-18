@@ -102,7 +102,7 @@ class Settings(BaseSettings):
     # ===== LLM 复核(可选)=====
     llm_base_url: Optional[str] = None       # OpenAI 兼容,如 https://api.deepseek.com/v1
     llm_api_key: Optional[str] = None
-    llm_model: str = "deepseek-chat"
+    llm_model: str = "deepseek-v4-flash"
     llm_timeout_sec: int = 20
     llm_enabled: bool = False                # 仅当 base_url+key 都配置才生效
 
