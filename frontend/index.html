@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>饼哥帮你剪播客 · Xianerbing-podcast-cutter</title>
+  <link rel="stylesheet" href="/static/style.css?v=20260618-pause-button" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🎙️</span>
+      <div>
+        <h1>饼哥帮你剪播客</h1>
+        <p class="tagline">Xianerbing-podcast-cutter · 中文播客口癖智能剪辑 · 平滑不突兀</p>
+      </div>
+    </div>
+    <div class="status-pill" id="healthPill">检查中…</div>
+  </header>
+
+  <main>
+    <!-- ============ Step 1: 上传 ============ -->
+    <section id="step-upload" class="card">
+      <h2>① 上传音频</h2>
+      <div id="dropzone" class="dropzone">
+        <div class="dz-inner">
+          <div class="dz-icon">⬆️</div>
+          <p>拖拽音频文件到这里,或 <span class="link">点击选择</span></p>
+          <p class="hint">支持 mp3 / wav / m4a / flac / ogg,最大 2GB</p>
+        </div>
+        <input type="file" id="fileInput" accept=".mp3,.wav,.m4a,.aac,.flac,.ogg,.opus" hidden />
+      </div>
+
+      <div class="controls">
+        <label class="control">
+          <span>剪辑力度</span>
+          <select id="strengthSel">
+            <option value="conservative">保守 · 只删最确定的口癖</option>
+            <option value="balanced" selected>均衡 · 删明确口癖+重复(推荐)</option>
+            <option value="aggressive">激进 · 删所有填充词</option>
+          </select>
+        </label>
+        <button id="uploadBtn" class="btn primary" disabled>开始分析</button>
+      </div>
+
+      <div id="uploadProgress" class="progress-row hidden">
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+        <span id="progressMsg">就绪</span>
+      </div>
+    </section>
+
+    <!-- ============ Step 2: 审核 ============ -->
+    <section id="step-review" class="card hidden">
+      <h2>② 审核剪辑建议</h2>
+      <div class="review-meta" id="reviewMeta"></div>
+
+      <div class="waveform-wrap">
+        <div id="waveform"></div>
+        <div id="wave-timeline"></div>
+        <div class="wave-readout">
+          <span>当前位置 <b id="waveCurrentTime">0:00.0</b></span>
+          <span>鼠标 <b id="waveHoverTime">--:--.-</b></span>
+          <span>选中 <b id="waveSelectionTime">未选择</b></span>
+        </div>
+        <div class="wave-controls">
+          <button id="playBtn" class="btn">▶ 播放</button>
+          <button id="pauseAllBtn" class="btn">暂停</button>
+          <button id="origPlayBtn" class="btn">▶ 播放原始</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" id="searchBox" placeholder="搜索原文…" />
+        <div class="filter-group">
+          <label><input type="checkbox" id="filtAuto" checked /> 待删 (<span id="cntAuto">0</span>)</label>
+          <label><input type="checkbox" id="filtReview" checked /> 待复核 (<span id="cntReview">0</span>)</label>
+          <label><input type="checkbox" id="filtKeep" /> 已保留 (<span id="cntKeep">0</span>)</label>
+        </div>
+        <button id="keepAllBtn" class="btn small">全部保留</button>
+        <button id="cutAllBtn" class="btn small danger">全部删除</button>
+      </div>
+
+      <div class="edit-list" id="editList"></div>
+
+      <div class="render-controls">
+        <label class="control inline">
+          <input type="checkbox" id="loudnormChk" />
+          <span>响度归一(EBU R128 -16 LUFS)</span>
+        </label>
+        <button id="renderBtn" class="btn primary big">渲染导出</button>
+      </div>
+    </section>
+
+    <!-- ============ Step 3: 下载 ============ -->
+    <section id="step-done" class="card hidden">
+      <h2>③ 完成</h2>
+      <div class="done-wrap">
+        <div class="done-icon">✅</div>
+        <h3 id="doneTitle">剪辑完成!</h3>
+        <p id="doneStats" class="done-stats"></p>
+        <audio id="resultAudio" controls></audio>
+        <div class="done-actions">
+          <a id="downloadLink" class="btn primary big" download>⬇ 下载 MP3</a>
+          <a id="cutlogLink" class="btn" target="_blank">📋 剪辑日志</a>
+          <button id="backToReviewBtn" class="btn">↩ 返回调整重新渲染</button>
+          <button id="newJobBtn" class="btn">处理新文件</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>饼哥帮你剪播客 · Xianerbing-podcast-cutter · 严格按中文语义 · 平滑剪辑不突兀</span>
+  </footer>
+
+  <script type="module" src="/static/app.js?v=20260618-pause-button"></script>
+</body>
+</html>

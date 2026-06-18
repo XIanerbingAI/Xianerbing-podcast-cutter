@@ -1,0 +1,57 @@
+# PodcastZ 服务器部署
+# 用法:
+#   1. cp .env.example .env  并按需修改
+#   2. docker compose up -d --build
+#   3. 浏览器访问 http://<服务器IP>:8000
+
+services:
+  podcastz:
+    build: .
+    image: podcastz:latest
+    container_name: podcastz
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # 容器内固定路径
+      MODELS_DIR: /app/models
+    volumes:
+      # 持久化:模型缓存(避免每次重启重下几 GB)
+      - podcastz_models:/app/models
+      # 用户上传与产出
+      - podcastz_data:/app/data
+      # 如需自定义 .env,挂载之(已由 env_file 覆盖,这里仅备份)
+    # GPU 支持(取消注释以启用 CUDA,需 nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # 可选:Celery worker(高并发场景启用)
+  # 需先 USE_CELERY=true 并启动 redis
+  # redis:
+  #   image: redis:7-alpine
+  #   restart: unless-stopped
+  # worker:
+  #   build: .
+  #   command: celery -A backend.workers.celery_app worker -l info
+  #   env_file: [.env]
+  #   depends_on: [redis]
+  #   volumes:
+  #     - podcastz_models:/app/models
+  #     - podcastz_data:/app/data
+
+volumes:
+  podcastz_models:
+  podcastz_data:

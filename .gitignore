@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+
+# 环境
+.env
+.env.local
+
+# 数据与模型(不入库)
+data/
+models/
+uploads/
+outputs/
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+*.aac
+
+# 但保留示例音频目录结构(可选)
+!data/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 构建产物
+dist/
+build/
+
+# Local scratch
+127

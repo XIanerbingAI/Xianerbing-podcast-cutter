@@ -1,0 +1,58 @@
+[project]
+name = "xianerbing-podcast-cutter"
+version = "0.1.0"
+description = "中文播客口癖/填充词智能剪辑工具 —— 严格按中文语义、平滑不突兀"
+requires-python = ">=3.10"
+readme = "README.md"
+
+dependencies = [
+    # Web 服务
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+
+    # 音频处理
+    "pydub>=0.25.1",
+    "ffmpeg-python>=0.2.0",
+    "imageio-ffmpeg>=0.4.9",   # 打包静态 ffmpeg 二进制,免去手动安装
+    "numpy>=1.26",
+    "soundfile>=0.12.1",
+    "scipy>=1.11",
+
+    # 转写(中文词级时间戳)
+    "faster-whisper>=1.0.3",
+    "ctranslate2>=4.1",
+
+    # 中文语义
+    "jieba>=0.42.1",
+    "opencc-python-reimplemented>=0.1.7",   # 繁→简(Whisper 中文常输出繁体)
+
+    # LLM 复核(OpenAI 兼容)
+    "openai>=1.30",
+    "httpx>=0.27",
+
+    # 工具
+    "loguru>=0.7.2",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+]
+server = [
+    "celery>=5.3",
+    "redis>=5.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
