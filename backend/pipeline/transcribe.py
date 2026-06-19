@@ -10,6 +10,9 @@
 from __future__ import annotations
 
 import json
+import os
+import site
+import sys
 from dataclasses import asdict
 from pathlib import Path
 
@@ -20,10 +23,40 @@ from backend.models import Segment, WordToken
 
 # 模型单例,避免反复加载
 _MODEL = None
+_CUDA_DLL_DIRS_CONFIGURED = False
+
+
+def _configure_cuda_dll_dirs() -> list[str]:
+    """Make pip-installed NVIDIA CUDA DLLs visible to CTranslate2 on Windows."""
+    global _CUDA_DLL_DIRS_CONFIGURED
+    if _CUDA_DLL_DIRS_CONFIGURED or sys.platform != "win32":
+        return []
+    _CUDA_DLL_DIRS_CONFIGURED = True
+
+    candidates: list[Path] = []
+    for base in site.getsitepackages() + [site.getusersitepackages()]:
+        nvidia_dir = Path(base) / "nvidia"
+        for pkg in ("cuda_runtime", "cuda_nvrtc", "cublas", "cudnn"):
+            candidates.append(nvidia_dir / pkg / "bin")
+
+    added: list[str] = []
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            os.add_dll_directory(str(path))
+            added.append(str(path))
+        except (FileNotFoundError, OSError):
+            continue
+    if added:
+        os.environ["PATH"] = os.pathsep.join(added + [os.environ.get("PATH", "")])
+        logger.debug(f"Configured CUDA DLL directories: {added}")
+    return added
 
 
 def _cuda_device_count() -> int:
     """Return CUDA device count without requiring torch."""
+    _configure_cuda_dll_dirs()
     try:
         import ctranslate2  # type: ignore
         return int(ctranslate2.get_cuda_device_count())
@@ -39,6 +72,7 @@ def _cuda_device_count() -> int:
 
 
 def _cuda_supported_compute_types() -> set[str]:
+    _configure_cuda_dll_dirs()
     try:
         import ctranslate2  # type: ignore
         return set(ctranslate2.get_supported_compute_types("cuda"))
@@ -104,6 +138,7 @@ def get_model():
     global _MODEL
     if _MODEL is not None:
         return _MODEL
+    _configure_cuda_dll_dirs()
     from faster_whisper import WhisperModel  # type: ignore
 
     device = _resolve_device()
