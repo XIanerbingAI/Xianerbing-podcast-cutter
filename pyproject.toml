@@ -23,7 +23,7 @@ dependencies = [
 
     # 转写(中文词级时间戳)
     "faster-whisper>=1.0.3",
-    "ctranslate2>=4.1",
+    "ctranslate2>=4.8",
 
     # 中文语义
     "jieba>=0.42.1",

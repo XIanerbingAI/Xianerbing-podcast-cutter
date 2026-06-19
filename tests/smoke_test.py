@@ -342,6 +342,18 @@ def test_transcribe_word_timing_normalization():
     assert out[1].probability == 0.0
 
 
+def test_transcribe_runtime_info():
+    from backend.pipeline.transcribe import runtime_info
+
+    info = runtime_info()
+    assert info["model"]
+    assert info["configured_device"] in {"auto", "cpu", "cuda"}
+    assert info["resolved_device"] in {"cpu", "cuda"}
+    assert info["resolved_compute"]
+    assert isinstance(info["cuda_device_count"], int)
+    assert "models_dir" in info
+
+
 def test_llm_failure_marks_ambiguous_keep():
     from backend.models import Confidence, CutPosition, CutReason, EditItem
     from backend.pipeline.semantic_llm import mark_review_failed_keep
@@ -479,7 +491,8 @@ if __name__ == "__main__":
     check("6. 力度策略差异", test_strength_difference)
     check("7a. LLM 复核上下文", test_llm_context_uses_detected_text_context)
     check("7b. 词时间戳规范化", test_transcribe_word_timing_normalization)
-    check("7c. LLM 失败保守保留", test_llm_failure_marks_ambiguous_keep)
+    check("7c. Whisper GPU 运行时诊断", test_transcribe_runtime_info)
+    check("7d. LLM 失败保守保留", test_llm_failure_marks_ambiguous_keep)
     check("8a. 分块上传大小限制", test_upload_stream_limit_and_cleanup)
     check("8b. 预览缓存容量限制", test_render_context_cache_limit)
     check("8c. 渲染方案应用", test_render_decision_modes_apply_to_regions)

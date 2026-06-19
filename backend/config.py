@@ -65,9 +65,9 @@ class Settings(BaseSettings):
     max_upload_mb: int = 2048
 
     # ===== 转写 =====
-    whisper_model: str = "medium"            # tiny/base/small/medium/large-v3
+    whisper_model: str = "large-v3"          # tiny/base/small/medium/large-v3
     whisper_device: str = "auto"             # auto / cpu / cuda
-    whisper_compute: str = "int8"            # int8 / int8_float16 / float16
+    whisper_compute: str = "int8_float16"    # int8 / int8_float16 / float16
     whisper_language: str = "zh"
     beam_size: int = 5
     vad_filter: bool = True                  # faster-whisper 内置 VAD 去静音

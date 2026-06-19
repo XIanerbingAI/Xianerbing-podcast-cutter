@@ -310,7 +310,8 @@ def list_jobs():
 @router.get("/health")
 def health():
     from backend.ffmpeg_util import ffmpeg_bin
-    return {"status": "ok", "ffmpeg": ffmpeg_bin()}
+    from backend.pipeline.transcribe import runtime_info
+    return {"status": "ok", "ffmpeg": ffmpeg_bin(), "whisper": runtime_info()}
 
 
 @router.get("/cutlog/{job_id}")

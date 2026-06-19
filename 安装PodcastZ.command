@@ -87,10 +87,10 @@ pip install --quiet "faster-whisper>=1.0.3"
 echo -e "${GREEN}  ✓ 依赖安装完成${NC}"
 
 # ============================================================
-# 步骤 4:下载 Whisper 模型(约1.5GB,走国内镜像)
+# 步骤 4:下载 Whisper large-v3 模型(约3GB,走国内镜像)
 # ============================================================
 echo ""
-echo -e "${YELLOW}[4/5] 下载语音识别模型(约1.5GB,首次约5-10分钟)...${NC}"
+echo -e "${YELLOW}[4/5] 下载语音识别模型 large-v3(约3GB,首次约10-20分钟)...${NC}"
 export HF_ENDPOINT="https://hf-mirror.com"
 export HF_HUB_DISABLE_SYMLINKS_WARNING="1"
 python -c "
@@ -99,7 +99,7 @@ os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 from huggingface_hub import snapshot_download
 from pathlib import Path
 p = snapshot_download(
-    'Systran/faster-whisper-medium',
+    'Systran/faster-whisper-large-v3',
     allow_patterns=['*.json', '*.txt', 'model.bin', 'tokenizer*', 'vocabulary*', 'preprocessor*'],
     cache_dir=str(Path('models')),
     max_workers=2,

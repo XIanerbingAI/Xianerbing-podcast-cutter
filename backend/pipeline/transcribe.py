@@ -22,26 +22,82 @@ from backend.models import Segment, WordToken
 _MODEL = None
 
 
-def _resolve_device() -> str:
-    if settings.whisper_device != "auto":
-        return settings.whisper_device
+def _cuda_device_count() -> int:
+    """Return CUDA device count without requiring torch."""
+    try:
+        import ctranslate2  # type: ignore
+        return int(ctranslate2.get_cuda_device_count())
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(f"CTranslate2 CUDA detection failed: {exc}")
     try:
         import torch  # type: ignore
         if torch.cuda.is_available():
-            return "cuda"
-    except Exception:  # noqa: BLE001
-        pass
+            return int(torch.cuda.device_count())
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(f"torch CUDA detection failed: {exc}")
+    return 0
+
+
+def _cuda_supported_compute_types() -> set[str]:
+    try:
+        import ctranslate2  # type: ignore
+        return set(ctranslate2.get_supported_compute_types("cuda"))
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(f"CTranslate2 compute type detection failed: {exc}")
+        return set()
+
+
+def _resolve_device() -> str:
+    configured = (settings.whisper_device or "auto").lower()
+    if configured == "cpu":
+        return "cpu"
+    if configured == "cuda":
+        if _cuda_device_count() <= 0:
+            raise RuntimeError("WHISPER_DEVICE=cuda, but CTranslate2 cannot see a CUDA GPU.")
+        return "cuda"
+    if configured != "auto":
+        logger.warning(f"Unknown WHISPER_DEVICE={settings.whisper_device!r}; falling back to auto")
+    if _cuda_device_count() > 0:
+        return "cuda"
     return "cpu"
 
 
 def _resolve_compute(device: str) -> str:
+    configured = (settings.whisper_compute or "").lower()
     if device == "cuda":
-        # 用户显式指定时尊重之
-        if settings.whisper_compute in ("float16", "int8_float16", "int8"):
-            return settings.whisper_compute
-        return "int8_float16"
+        preferred = configured if configured in ("float16", "int8_float16", "int8") else "int8_float16"
+        supported = _cuda_supported_compute_types()
+        if not supported or preferred in supported:
+            return preferred
+        for fallback in ("int8_float16", "float16", "int8_float32", "int8", "float32"):
+            if fallback in supported:
+                logger.warning(
+                    f"WHISPER_COMPUTE={preferred!r} is not supported on CUDA; using {fallback!r}"
+                )
+                return fallback
+        raise RuntimeError(f"No supported CUDA compute type found: {sorted(supported)}")
     return "int8"
 
+
+def runtime_info() -> dict:
+    """Report Whisper runtime selection without loading the model."""
+    info = {
+        "model": settings.whisper_model,
+        "configured_device": settings.whisper_device,
+        "configured_compute": settings.whisper_compute,
+        "cuda_device_count": _cuda_device_count(),
+        "cuda_supported_compute_types": sorted(_cuda_supported_compute_types()),
+        "models_dir": str(MODELS_DIR),
+    }
+    try:
+        device = _resolve_device()
+        info["resolved_device"] = device
+        info["resolved_compute"] = _resolve_compute(device)
+        info["ready"] = True
+    except Exception as exc:  # noqa: BLE001
+        info["ready"] = False
+        info["error"] = str(exc)
+    return info
 
 def get_model():
     """惰性加载 faster-whisper 模型(单例)。"""
